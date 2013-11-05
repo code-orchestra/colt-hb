@@ -16,22 +16,28 @@ public class PersistentCookieStore implements CookieStore, Runnable {
 
         preferences = Preferences.userNodeForPackage(PersistentCookieStore)
 
-        //read in cookies from persistant storage
-        String str = preferences.get("colt.hb.cookies", "")
-        println "out str = $str"
-        str.split("]::").each {
-            if(it != "") {
-                String[] arr = it.split(/\[/)
-                URI uri = new URI(arr[0])
-                HttpCookie.parse(arr[1]).each {
-                    add(uri, it)
-                }
-            }
-        }
-        // and add them store
-
         // add a shutdown hook to write out the in memory cookies
         Runtime.runtime.addShutdownHook(new Thread(this))
+    }
+
+    public void initCookieHandler(CookieHandler cookieHandler) {
+        String str = preferences.get("colt.cookies", "")
+        println "out str = $str"
+        if (str == "") {
+            return
+        }
+        str.split("]::").each {
+            String[] arr = it.split(/\[/)
+            URI uri = URI.create(arr[0])
+            Map<String, List<String>> headers = new LinkedHashMap<String, List<String>>()
+            List<String> list = new ArrayList<>()
+            arr[1].split(", ").each {s ->
+                list.add(s)
+            }
+            headers.put("Set-Cookie2", list)
+            cookieHandler.put(uri, headers)
+        }
+
     }
 
     private void save() {
@@ -39,7 +45,7 @@ public class PersistentCookieStore implements CookieStore, Runnable {
         getURIs().each {
             str += it.toString() + get(it).toString() + "::"
         }
-        preferences.put("colt.hb.cookies", str)
+        preferences.put("colt.cookies", str)
         preferences.sync()
 
         getURIs().each {
