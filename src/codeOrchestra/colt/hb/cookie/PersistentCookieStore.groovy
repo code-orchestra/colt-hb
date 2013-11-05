@@ -22,7 +22,6 @@ public class PersistentCookieStore implements CookieStore, Runnable {
 
     public void initCookieHandler(CookieHandler cookieHandler) {
         String str = preferences.get("colt.cookies", "")
-        println "out str = $str"
         if (str == "") {
             return
         }
@@ -47,10 +46,6 @@ public class PersistentCookieStore implements CookieStore, Runnable {
         }
         preferences.put("colt.cookies", str)
         preferences.sync()
-
-        getURIs().each {
-            println "$it = ${get(it)}"
-        }
     }
 
     public void run() {
